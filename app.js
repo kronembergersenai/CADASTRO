@@ -1,7 +1,7 @@
 // Dashboard Educacional - Cadastro de Ideias
 class ProjectDashboard {
     constructor() {
-        this.scriptUrl = 'https://script.google.com/macros/s/AKfycbwA9_HJdrkb9r0YNh3zptW9STDwjg5UN3rPMa5gbizKj59rPHtRTGbn0cB5JnzjpG7y3Q/exec';
+        this.scriptUrl = 'https://script.google.com/macros/s/AKfycbxR-ksxj-JayHyV08EA85uvdFxcC7uQNNia59t6rqP9RRDKEaISsKR7va9rHIfIBbE/exec';
         this.form = document.getElementById('projectForm');
         this.submitButton = document.getElementById('submitButton');
         this.clearButton = document.getElementById('clearButton');
