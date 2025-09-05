@@ -4,7 +4,7 @@
 class ProjectDashboard {
   constructor() {
     // Substitua pela URL do seu Apps Script implantado
-    this.scriptUrl = 'https://script.google.com/macros/s/AKfycbzgKVPw1NVmv1R6UH_PANHVs82BcSHJPiXbsfx8BV0/dev';
+    this.scriptUrl = 'https://script.google.com/macros/s/AKfycbxR-ksxj-JayHyV08EA85uvdFxcC7uQNNia59t6rqP9RRDKEaISsKR7va9rHIfIBbE/exec';
     this.form = document.getElementById('projectForm');
     this.submitButton = document.getElementById('submitButton');
     this.clearButton = document.getElementById('clearButton');
