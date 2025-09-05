@@ -1,525 +1,287 @@
-// Dashboard Educacional - Cadastro de Ideias
+// Dashboard Educacional – Cadastro de Ideias
+// Versão corrigida e otimizada para integração com Google Apps Script
+
 class ProjectDashboard {
-    constructor() {
-        this.scriptUrl = 'https://script.google.com/macros/s/AKfycbxR-ksxj-JayHyV08EA85uvdFxcC7uQNNia59t6rqP9RRDKEaISsKR7va9rHIfIBbE/exec';
-        this.form = document.getElementById('projectForm');
-        this.submitButton = document.getElementById('submitButton');
-        this.clearButton = document.getElementById('clearButton');
-        this.successMessage = document.getElementById('successMessage');
-        this.errorMessage = document.getElementById('errorMessage');
-        
-        this.init();
-    }
+  constructor() {
+    // Substitua pela URL do seu Apps Script implantado
+    this.scriptUrl = 'https://script.google.com/macros/s/AKfycbzgKVPw1NVmv1R6UH_PANHVs82BcSHJPiXbsfx8BV0/dev';
+    this.form = document.getElementById('projectForm');
+    this.submitButton = document.getElementById('submitButton');
+    this.clearButton = document.getElementById('clearButton');
+    this.successMessage = document.getElementById('successMessage');
+    this.errorMessage = document.getElementById('errorMessage');
+    this.init();
+  }
 
-    init() {
-        this.setupEventListeners();
-        this.setupCharacterCounter();
-        this.setupFormValidation();
-        this.addAnimationClasses();
-    }
+  init() {
+    this.setupEventListeners();
+    this.setupCharacterCounter();
+    this.setupFormValidation();
+    this.addAnimationClasses();
+  }
 
-    setupEventListeners() {
-        // Form submission
-        this.form.addEventListener('submit', (e) => this.handleSubmit(e));
-        
-        // Clear form button
-        this.clearButton.addEventListener('click', () => this.clearForm());
-        
-        // Real-time validation
-        const inputs = this.form.querySelectorAll('input[required], textarea[required]');
-        inputs.forEach(input => {
-            input.addEventListener('blur', () => this.validateField(input));
-            input.addEventListener('input', () => this.clearFieldError(input));
-        });
+  setupEventListeners() {
+    // Submissão do formulário
+    this.form.addEventListener('submit', e => this.handleSubmit(e));
+    // Limpar formulário
+    this.clearButton.addEventListener('click', () => this.clearForm());
+    // Validação em tempo real
+    const inputs = this.form.querySelectorAll('input[required], textarea[required]');
+    inputs.forEach(input => {
+      input.addEventListener('blur', () => this.validateField(input));
+      input.addEventListener('input', () => this.clearFieldError(input));
+    });
+    // Auto-hide mensagens
+    this.setupAutoHideMessages();
+  }
 
-        // Auto-hide status messages after 10 seconds
-        this.setupAutoHideMessages();
-    }
+  setupCharacterCounter() {
+    const textarea = document.getElementById('projectDescription');
+    const charCount = document.getElementById('charCount');
+    if (!textarea || !charCount) return;
+    textarea.addEventListener('input', () => {
+      const count = textarea.value.length;
+      charCount.textContent = count;
+      if (count > 1000) charCount.style.color = '#ef4444';
+      else if (count > 800) charCount.style.color = '#f59e0b';
+      else charCount.style.color = '#64748b';
+    });
+  }
 
-    setupCharacterCounter() {
-        const textarea = document.getElementById('projectDescription');
-        const charCount = document.getElementById('charCount');
-        
-        textarea.addEventListener('input', () => {
-            const count = textarea.value.length;
-            charCount.textContent = count;
-            
-            // Visual feedback for character count
-            if (count > 1000) {
-                charCount.style.color = '#ef4444';
-            } else if (count > 800) {
-                charCount.style.color = '#f59e0b';
-            } else {
-                charCount.style.color = '#64748b';
-            }
-        });
-    }
-
-    setupFormValidation() {
-        const inputs = this.form.querySelectorAll('input[required], textarea[required]');
-        
-        inputs.forEach(input => {
-            // Add success state on valid input
-            input.addEventListener('input', () => {
-                if (input.value.trim() && input.checkValidity()) {
-                    input.classList.remove('error');
-                    input.classList.add('success');
-                } else {
-                    input.classList.remove('success');
-                }
-            });
-        });
-    }
-
-    validateField(field) {
-        const errorDiv = document.getElementById(`${field.id}-error`);
-        let isValid = true;
-        let errorMessage = '';
-
-        // Clear previous states
-        field.classList.remove('error', 'success');
-        errorDiv.classList.remove('show');
-
-        // Required field validation
-        if (!field.value.trim()) {
-            errorMessage = 'Este campo é obrigatório.';
-            isValid = false;
+  setupFormValidation() {
+    const inputs = this.form.querySelectorAll('input[required], textarea[required]');
+    inputs.forEach(input => {
+      input.addEventListener('input', () => {
+        if (input.value.trim() && input.checkValidity()) {
+          input.classList.remove('error');
+          input.classList.add('success');
         } else {
-            // Specific field validations
-            switch (field.id) {
-                case 'projectTitle':
-                    if (field.value.trim().length < 5) {
-                        errorMessage = 'O título deve ter pelo menos 5 caracteres.';
-                        isValid = false;
-                    } else if (field.value.trim().length > 100) {
-                        errorMessage = 'O título deve ter no máximo 100 caracteres.';
-                        isValid = false;
-                    }
-                    break;
-                    
-                case 'studentName':
-                    if (field.value.trim().length < 2) {
-                        errorMessage = 'O nome deve ter pelo menos 2 caracteres.';
-                        isValid = false;
-                    } else if (!/^[a-zA-ZÀ-ÿ\s]+$/.test(field.value.trim())) {
-                        errorMessage = 'O nome deve conter apenas letras e espaços.';
-                        isValid = false;
-                    }
-                    break;
-                    
-                case 'projectDescription':
-                    if (field.value.trim().length < 50) {
-                        errorMessage = 'A descrição deve ter pelo menos 50 caracteres.';
-                        isValid = false;
-                    } else if (field.value.trim().length > 2000) {
-                        errorMessage = 'A descrição deve ter no máximo 2000 caracteres.';
-                        isValid = false;
-                    }
-                    break;
-            }
+          input.classList.remove('success');
         }
+      });
+    });
+  }
 
-        if (!isValid) {
-            field.classList.add('error');
-            errorDiv.textContent = errorMessage;
-            errorDiv.classList.add('show');
-        } else {
-            field.classList.add('success');
+  validateField(field) {
+    const errorDiv = document.getElementById(`${field.id}-error`);
+    let isValid = true, errorMessage = '';
+    field.classList.remove('error', 'success');
+    if (errorDiv) errorDiv.classList.remove('show');
+
+    if (!field.value.trim()) {
+      errorMessage = 'Este campo é obrigatório.';
+      isValid = false;
+    } else {
+      switch (field.id) {
+        case 'projectTitle':
+          if (field.value.length < 5) { errorMessage = 'Mínimo 5 caracteres.'; isValid = false; }
+          else if (field.value.length > 100) { errorMessage = 'Máximo 100 caracteres.'; isValid = false; }
+          break;
+        case 'studentName':
+          if (field.value.length < 2) { errorMessage = 'Mínimo 2 caracteres.'; isValid = false; }
+          else if (!/^[A-Za-zÀ-ÿ\s]+$/.test(field.value)) { errorMessage = 'Apenas letras e espaços.'; isValid = false; }
+          break;
+        case 'projectDescription':
+          if (field.value.length < 50) { errorMessage = 'Mínimo 50 caracteres.'; isValid = false; }
+          else if (field.value.length > 2000) { errorMessage = 'Máximo 2000 caracteres.'; isValid = false; }
+          break;
+      }
+    }
+
+    if (!isValid && errorDiv) {
+      field.classList.add('error');
+      errorDiv.textContent = errorMessage;
+      errorDiv.classList.add('show');
+    } else {
+      field.classList.add('success');
+    }
+    return isValid;
+  }
+
+  validateForm() {
+    const inputs = this.form.querySelectorAll('input[required], textarea[required]');
+    let valid = true;
+    inputs.forEach(input => { if (!this.validateField(input)) valid = false; });
+    return valid;
+  }
+
+  clearFieldError(field) {
+    const errorDiv = document.getElementById(`${field.id}-error`);
+    field.classList.remove('error');
+    if (errorDiv) errorDiv.classList.remove('show');
+  }
+
+  async handleSubmit(e) {
+    e.preventDefault();
+    if (!this.validateForm()) { this.showError('Corrija os erros antes de enviar.'); return; }
+    this.setLoadingState(true);
+    this.hideMessages();
+
+    try {
+      const data = this.getFormData();
+      console.log('Enviando dados:', data);
+      const res = await this.submitToGoogleScript(data);
+      console.log('Resposta:', res);
+      this.showSuccess(`Sucesso! PDF: ${res.fileName || ''}`);
+      this.clearForm();
+      this.scrollToTop();
+    } catch (err) {
+      console.error(err);
+      let msg = 'Erro ao processar. ';
+      if (err.message.includes('NetworkError')) msg += 'Verifique a conexão.';
+      else if (err.message.includes('Timeout')) msg += 'Servidor lento.';
+      else msg += 'Tente novamente.';
+      this.showError(msg);
+    } finally {
+      this.setLoadingState(false);
+    }
+  }
+
+  getFormData() {
+    const now = new Date();
+    return {
+      titulo: document.getElementById('projectTitle').value.trim(),
+      aluno: document.getElementById('studentName').value.trim(),
+      descricao: document.getElementById('projectDescription').value.trim(),
+      dataEnvio: now.toLocaleDateString('pt-BR'),
+      horaEnvio: now.toLocaleTimeString('pt-BR'),
+      timestamp: now.toISOString(),
+      responsaveis: {
+        instrutor: 'Kronemberger',
+        tecnico: 'Marcelo Emmel',
+        coordenador: 'Danilo Fagundes',
+        pedagogo: 'Gisele Nortanicola'
+      }
+    };
+  }
+
+  async submitToGoogleScript(data) {
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 90000);
+    try {
+      const resp = await fetch(this.scriptUrl, {
+        method: 'POST', mode: 'cors', headers: {'Content-Type':'application/json'},
+        body: JSON.stringify(data), signal: controller.signal
+      });
+      clearTimeout(timeout);
+      if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+      const text = await resp.text();
+      return text ? JSON.parse(text) : {success:true};
+    } catch (err) {
+      clearTimeout(timeout);
+      if (err.name==='AbortError') throw new Error('Timeout');
+      throw err;
+    }
+  }
+
+  setLoadingState(flag) {
+    const txt = this.submitButton.querySelector('.btn-text');
+    const sp = this.submitButton.querySelector('.loading-spinner');
+    this.submitButton.disabled = flag;
+    this.clearButton.disabled = flag;
+    this.submitButton.classList.toggle('loading', flag);
+    if (txt) txt.textContent = flag ? 'Enviando...' : 'Enviar Projeto';
+    if (sp) sp.classList.toggle('hidden', !flag);
+  }
+
+  showSuccess(msg) {
+    this.hideMessages();
+    const el = this.successMessage.querySelector('.status-text');
+    if (el) el.textContent = msg;
+    this.successMessage.classList.remove('hidden');
+    this.successMessage.classList.add('fade-in');
+    this.scrollToMessage();
+  }
+
+  showError(msg) {
+    this.hideMessages();
+    const el = this.errorMessage.querySelector('#errorText');
+    if (el) el.textContent = msg;
+    this.errorMessage.classList.remove('hidden');
+    this.errorMessage.classList.add('fade-in');
+    this.scrollToMessage();
+  }
+
+  hideMessages() {
+    [this.successMessage, this.errorMessage].forEach(m => {
+      if (m) { m.classList.add('hidden'); m.classList.remove('fade-in'); }
+    });
+  }
+
+  clearForm() {
+    this.form.reset();
+    this.form.querySelectorAll('input,textarea').forEach(i=>i.classList.remove('error','success'));
+    this.form.querySelectorAll('.field-error').forEach(e=>e.classList.remove('show'));
+    const cc = document.getElementById('charCount');
+    if (cc) { cc.textContent='0'; cc.style.color='#64748b'; }
+    this.form.classList.add('slide-up');
+    setTimeout(() => this.form.classList.remove('slide-up'), 300);
+  }
+
+  scrollToMessage() {
+    setTimeout(()=> {
+      const c = document.querySelector('.status-container');
+      if (c) c.scrollIntoView({behavior:'smooth',block:'center'});
+    },100);
+  }
+
+  scrollToTop() {
+    setTimeout(()=> window.scrollTo({top:0,behavior:'smooth'}),100);
+  }
+
+  setupAutoHideMessages() {
+    const obs = new MutationObserver(muts=>{
+      muts.forEach(m=>{
+        const t=m.target;
+        if (t===this.successMessage && !t.classList.contains('hidden')) {
+          clearTimeout(this._sTimeout);
+          this._sTimeout=setTimeout(()=>t.classList.add('hidden'),15000);
         }
-
-        return isValid;
-    }
-
-    validateForm() {
-        const inputs = this.form.querySelectorAll('input[required], textarea[required]');
-        let isValid = true;
-
-        inputs.forEach(input => {
-            if (!this.validateField(input)) {
-                isValid = false;
-            }
-        });
-
-        return isValid;
-    }
-
-    clearFieldError(field) {
-        const errorDiv = document.getElementById(`${field.id}-error`);
-        field.classList.remove('error');
-        errorDiv.classList.remove('show');
-    }
-
-    async handleSubmit(e) {
-        e.preventDefault();
-
-        // Validate form
-        if (!this.validateForm()) {
-            this.showError('Por favor, corrija os erros no formulário antes de enviar.');
-            return;
+        if (t===this.errorMessage && !t.classList.contains('hidden')) {
+          clearTimeout(this._eTimeout);
+          this._eTimeout=setTimeout(()=>t.classList.add('hidden'),20000);
         }
+      });
+    });
+    if (this.successMessage) obs.observe(this.successMessage,{attributes:true,attributeFilter:['class']});
+    if (this.errorMessage) obs.observe(this.errorMessage,{attributes:true,attributeFilter:['class']});
+  }
 
-        // Show loading state
-        this.setLoadingState(true);
-        this.hideMessages();
-
-        try {
-            // Prepare form data
-            const formData = this.getFormData();
-            
-            // Send to Google Apps Script
-            const response = await this.submitToGoogleScript(formData);
-            
-            // Handle successful response
-            this.showSuccess('Projeto enviado com sucesso! O PDF foi gerado e salvo no Google Drive.');
-            this.clearForm();
-            this.scrollToTop();
-            
-        } catch (error) {
-            console.error('Erro ao enviar projeto:', error);
-            
-            // Show user-friendly error message
-            let errorMsg = 'Erro ao processar sua solicitação. ';
-            
-            if (error.message.includes('Failed to fetch') || error.message.includes('NetworkError')) {
-                errorMsg += 'Verifique sua conexão com a internet e tente novamente.';
-            } else if (error.message.includes('Timeout')) {
-                errorMsg += 'O servidor está demorando para responder. Tente novamente em alguns minutos.';
-            } else if (error.message.includes('404') || error.message.includes('Not Found')) {
-                errorMsg += 'Serviço temporariamente indisponível. Tente novamente mais tarde.';
-            } else {
-                errorMsg += 'Tente novamente em alguns minutos.';
-            }
-            
-            this.showError(errorMsg);
-        } finally {
-            this.setLoadingState(false);
-        }
-    }
-
-    getFormData() {
-        const now = new Date();
-        
-        return {
-            titulo: document.getElementById('projectTitle').value.trim(),
-            aluno: document.getElementById('studentName').value.trim(),
-            descricao: document.getElementById('projectDescription').value.trim(),
-            dataEnvio: now.toLocaleDateString('pt-BR'),
-            horaEnvio: now.toLocaleTimeString('pt-BR'),
-            timestamp: now.toISOString(),
-            responsaveis: {
-                instrutor: 'Kronemberger',
-                tecnico: 'Marcelo Emmel',
-                coordenador: 'Danilo Fagundes',
-                pedagogo: 'Gisele Nortanicola'
-            }
-        };
-    }
-
-    async submitToGoogleScript(data) {
-        // Create a more robust submission method
-        const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), 30000); // 30s timeout
-
-        try {
-            // First attempt with POST
-            const response = await fetch(this.scriptUrl, {
-                method: 'POST',
-                mode: 'cors',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify(data),
-                signal: controller.signal
-            });
-
-            clearTimeout(timeoutId);
-
-            // Check if response is ok
-            if (!response.ok) {
-                throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-            }
-
-            // Try to parse JSON response
-            let result;
-            try {
-                const textResponse = await response.text();
-                if (textResponse.trim()) {
-                    result = JSON.parse(textResponse);
-                } else {
-                    // Empty response is considered success for Google Apps Script
-                    result = { success: true };
-                }
-            } catch (parseError) {
-                console.warn('Resposta não é JSON válido, assumindo sucesso:', parseError);
-                result = { success: true };
-            }
-
-            // Return successful result
-            return result;
-            
-        } catch (error) {
-            clearTimeout(timeoutId);
-            
-            // Handle different types of errors
-            if (error.name === 'AbortError') {
-                throw new Error('Timeout - O servidor demorou muito para responder.');
-            }
-            
-            if (error.message.includes('Failed to fetch') || error.message.includes('NetworkError')) {
-                // Try alternative method for CORS issues
-                try {
-                    await this.submitViaForm(data);
-                    return { success: true };
-                } catch (formError) {
-                    throw new Error('Erro de conexão. Verifique sua internet e tente novamente.');
-                }
-            }
-            
-            throw error;
-        }
-    }
-
-    async submitViaForm(data) {
-        // Alternative submission method using form data
-        const formData = new FormData();
-        Object.keys(data).forEach(key => {
-            if (typeof data[key] === 'object') {
-                formData.append(key, JSON.stringify(data[key]));
-            } else {
-                formData.append(key, data[key]);
-            }
-        });
-
-        const response = await fetch(this.scriptUrl, {
-            method: 'POST',
-            mode: 'no-cors',
-            body: formData
-        });
-
-        // no-cors mode doesn't allow reading response, so we assume success
-        return { success: true };
-    }
-
-    setLoadingState(isLoading) {
-        const btnText = this.submitButton.querySelector('.btn-text');
-        const spinner = this.submitButton.querySelector('.loading-spinner');
-        
-        if (isLoading) {
-            this.submitButton.disabled = true;
-            this.submitButton.classList.add('loading');
-            btnText.textContent = 'Enviando...';
-            spinner.classList.remove('hidden');
-        } else {
-            this.submitButton.disabled = false;
-            this.submitButton.classList.remove('loading');
-            btnText.textContent = 'Enviar Projeto';
-            spinner.classList.add('hidden');
-        }
-    }
-
-    showSuccess(message) {
-        this.hideMessages();
-        this.successMessage.querySelector('.status-text').textContent = message;
-        this.successMessage.classList.remove('hidden');
-        this.successMessage.classList.add('fade-in');
-        this.scrollToMessage();
-    }
-
-    showError(message) {
-        this.hideMessages();
-        this.errorMessage.querySelector('#errorText').textContent = message;
-        this.errorMessage.classList.remove('hidden');
-        this.errorMessage.classList.add('fade-in');
-        this.scrollToMessage();
-    }
-
-    hideMessages() {
-        this.successMessage.classList.add('hidden');
-        this.errorMessage.classList.add('hidden');
-        this.successMessage.classList.remove('fade-in');
-        this.errorMessage.classList.remove('fade-in');
-    }
-
-    clearForm() {
-        this.form.reset();
-        
-        // Clear validation states
-        const inputs = this.form.querySelectorAll('input, textarea');
-        inputs.forEach(input => {
-            input.classList.remove('error', 'success');
-        });
-        
-        // Clear error messages
-        const errors = this.form.querySelectorAll('.field-error');
-        errors.forEach(error => error.classList.remove('show'));
-        
-        // Reset character counter
-        document.getElementById('charCount').textContent = '0';
-        document.getElementById('charCount').style.color = '#64748b';
-        
-        // Add animation
-        this.form.classList.add('slide-up');
-        setTimeout(() => this.form.classList.remove('slide-up'), 300);
-    }
-
-    scrollToMessage() {
-        setTimeout(() => {
-            const statusContainer = document.querySelector('.status-container');
-            if (statusContainer) {
-                statusContainer.scrollIntoView({ behavior: 'smooth', block: 'center' });
-            }
-        }, 100);
-    }
-
-    scrollToTop() {
-        setTimeout(() => {
-            window.scrollTo({ top: 0, behavior: 'smooth' });
-        }, 100);
-    }
-
-    setupAutoHideMessages() {
-        let successTimeout, errorTimeout;
-
-        // Auto-hide success message
-        const observer = new MutationObserver((mutations) => {
-            mutations.forEach((mutation) => {
-                if (mutation.target === this.successMessage && !this.successMessage.classList.contains('hidden')) {
-                    clearTimeout(successTimeout);
-                    successTimeout = setTimeout(() => {
-                        this.successMessage.classList.add('hidden');
-                    }, 10000);
-                }
-                
-                if (mutation.target === this.errorMessage && !this.errorMessage.classList.contains('hidden')) {
-                    clearTimeout(errorTimeout);
-                    errorTimeout = setTimeout(() => {
-                        this.errorMessage.classList.add('hidden');
-                    }, 15000);
-                }
-            });
-        });
-
-        observer.observe(this.successMessage, { attributes: true, attributeFilter: ['class'] });
-        observer.observe(this.errorMessage, { attributes: true, attributeFilter: ['class'] });
-    }
-
-    addAnimationClasses() {
-        // Add entrance animations
-        setTimeout(() => {
-            const header = document.querySelector('.header');
-            const formContainer = document.querySelector('.form-container');
-            
-            if (header) header.classList.add('fade-in');
-            setTimeout(() => {
-                if (formContainer) formContainer.classList.add('fade-in');
-            }, 200);
-        }, 100);
-    }
+  addAnimationClasses() {
+    setTimeout(()=>{
+      document.querySelector('.header')?.classList.add('fade-in');
+      setTimeout(()=> document.querySelector('.form-container')?.classList.add('fade-in'),200);
+    },100);
+  }
 }
 
-// Utility functions for enhanced functionality
+// Utilitários
 class FormUtils {
-    static formatText(text) {
-        return text.trim().replace(/\s+/g, ' ');
-    }
-    
-    static capitalizeWords(text) {
-        return text.replace(/\w\S*/g, (txt) => 
-            txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase()
-        );
-    }
-    
-    static sanitizeInput(input) {
-        return input.replace(/<[^>]*>?/gm, ''); // Remove HTML tags
-    }
+  static formatText(txt){return txt.trim().replace(/\s+/g,' ');}
+  static capitalizeWords(txt){return txt.replace(/\w\S*/g,t=>t.charAt(0).toUpperCase()+t.substr(1).toLowerCase());}
+  static sanitizeInput(input){return input.replace(/<[^>]*>?/gm,'');}
 }
 
-// Enhanced form interactions
-document.addEventListener('DOMContentLoaded', () => {
-    // Initialize dashboard
-    const dashboard = new ProjectDashboard();
-    
-    // Add keyboard shortcuts
-    document.addEventListener('keydown', (e) => {
-        // Ctrl/Cmd + Enter to submit form
-        if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
-            e.preventDefault();
-            const submitButton = document.getElementById('submitButton');
-            if (submitButton && !submitButton.disabled) {
-                submitButton.click();
-            }
-        }
-        
-        // Escape to clear messages
-        if (e.key === 'Escape') {
-            dashboard.hideMessages();
-        }
-    });
-    
-    // Auto-save draft (in memory only, not persistent)
-    let draftData = {};
-    const inputs = document.querySelectorAll('input, textarea');
-    
-    inputs.forEach(input => {
-        input.addEventListener('input', () => {
-            draftData[input.id] = input.value;
-        });
-    });
-    
-    // Enhance input formatting
-    const nameInput = document.getElementById('studentName');
-    if (nameInput) {
-        nameInput.addEventListener('blur', function() {
-            if (this.value.trim()) {
-                this.value = FormUtils.capitalizeWords(FormUtils.formatText(this.value));
-            }
-        });
+// Inicialização
+document.addEventListener('DOMContentLoaded',()=>{
+  new ProjectDashboard();
+  // Atalhos de teclado
+  document.addEventListener('keydown',e=>{
+    if ((e.ctrlKey||e.metaKey)&&e.key==='Enter') {
+      const btn=document.getElementById('submitButton');
+      if (btn&&!btn.disabled) btn.click();
     }
-    
-    const titleInput = document.getElementById('projectTitle');
-    if (titleInput) {
-        titleInput.addEventListener('blur', function() {
-            if (this.value.trim()) {
-                this.value = FormUtils.formatText(this.value);
-            }
-        });
-    }
-    
-    // Add visual feedback for form interactions
-    inputs.forEach(input => {
-        input.addEventListener('focus', function() {
-            const parent = this.parentElement;
-            if (parent) parent.classList.add('focused');
-        });
-        
-        input.addEventListener('blur', function() {
-            const parent = this.parentElement;
-            if (parent) parent.classList.remove('focused');
-        });
-    });
-    
-    // Prevent accidental form loss
-    let formChanged = false;
-    inputs.forEach(input => {
-        input.addEventListener('input', () => {
-            formChanged = true;
-        });
-    });
-    
-    window.addEventListener('beforeunload', (e) => {
-        if (formChanged) {
-            e.preventDefault();
-            e.returnValue = 'Você tem alterações não salvas. Deseja realmente sair?';
-        }
-    });
-    
-    // Reset form changed flag on successful submit
-    const form = document.getElementById('projectForm');
-    if (form) {
-        form.addEventListener('submit', () => {
-            formChanged = false;
-        });
-    }
-    
-    console.log('Dashboard educacional carregado com sucesso!');
+    if (e.key==='Escape') document.querySelector('.status-container')?.classList.add('hidden');
+  });
+  // Form change tracking
+  let changed=false;
+  document.querySelectorAll('input,textarea').forEach(i=>{
+    i.addEventListener('input',()=>changed=true);
+    i.addEventListener('focus',()=>i.parentElement?.classList.add('focused'));
+    i.addEventListener('blur',()=>i.parentElement?.classList.remove('focused'));
+  });
+  window.addEventListener('beforeunload',e=>{
+    if (changed) { e.preventDefault(); e.returnValue='Tem alterações não salvas.'; }
+  });
+  document.getElementById('projectForm')?.addEventListener('submit',()=>changed=false);
 });
